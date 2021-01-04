@@ -169,9 +169,14 @@ def subjects_in_database():
     result = cursor.fetchall()
     return [elem[0] for elem in result]
 
+def lessons_in_subject(subject):
+    results = []
+    for i in range(lessons_nb(subject)):
+        results.append(lesson_name(i, subject))
+    return results
 
 if __name__ == "__main__":
     new_question()
-    choose_game_param()
-    subjects_nb = subjects_nb()
-    subjects_list = [subject_name(i) for i in range(subjects_nb)]
+    #choose_game_param()
+    #subjects_nb = subjects_nb()
+    #subjects_list = [subject_name(i) for i in range(subjects_nb)]
