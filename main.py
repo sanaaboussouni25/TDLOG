@@ -160,7 +160,6 @@ def subject_name(i):
 def lesson_name(i, subject):
     cursor.execute('SELECT DISTINCT lesson_name FROM base WHERE subject=?', (subject,))
     result = cursor.fetchall()
-    print(result)
     return result[i][0]
 
 
