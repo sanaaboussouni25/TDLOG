@@ -15,6 +15,8 @@ def create_button(window, name, y):
     button.setGeometry(QtCore.QRect(150, y, 300, 30))
     return button
 
+def coucou():
+    return 0
 
 class ManageWindow:
     def __init__(self, subject_list):

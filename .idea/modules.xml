@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/TDLOG_Flashcards.iml" filepath="$PROJECT_DIR$/.idea/TDLOG_Flashcards.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/TDLOG.iml" filepath="$PROJECT_DIR$/.idea/TDLOG.iml" />
     </modules>
   </component>
 </project>
