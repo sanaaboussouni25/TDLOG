@@ -1,114 +1,104 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import main
-import interface_new_card
+
+def create_button(window, name, y):
+    """Creates a button in the window, having a given name and height
+
+    :param window:
+    :param name: the name of the button, like "Maths"
+    :param y: the height of the button (depends on the total number of buttons)
+    :return: the button in the right shape with the right name
+    """
+    button = QtWidgets.QPushButton(name, window)
+    button.setGeometry(QtCore.QRect(150, y, 300, 30))
+    return button
+
+def HomePage():
+    """ Creates the homepage of the game.
+
+    :return: nothing
+    """
+    homepage = QtWidgets.QMainWindow()
+    play = QtWidgets.QPushButton("Jouer", homepage)
+    play.setGeometry(QtCore.QRect(150, 50, 300, 30))
+    new_card = QtWidgets.QPushButton("Nouvelle carte", homepage)
+    new_card.setGeometry(QtCore.QRect(150, 100, 300, 30))
+    see_cards = QtWidgets.QPushButton("Voir les cartes", homepage)
+    see_cards.setGeometry(QtCore.QRect(150, 150, 300, 30))
+
+    new_card.clicked.connect(lambda: HometoCreate())
+    play.clicked.connect(lambda: HometoGame())
+    # see_cards.clicked.connect(HometoDisplay)
+
+    return homepage
 
 
-class Ui_MainWindow(object):
-    def __init__(self):
-        # Building the homepage
+def HometoCreate():
+    """ Creates another window, using the class ... Seeks the existing subjects in database and shows the new window.
 
-        self.window_size = [800, 600]  # Size of the main window
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        # Layout containing the buttons
-        self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
-        self.layout_size = [60, 80, 681, 401]
+    :return:
+    """
+    subject_list = main.subjects_in_database()
+    creation_manager = ManageCreation(DisplayChoices(QtWidgets.QMainWindow(), subject_list, True))
+    CreateWindow = creation_manager.display.window
+    CreateWindow.show()
 
-        # Main title
-        self.main_title = QtWidgets.QLabel(self.centralwidget)
-        self.title_size = [370, 30, 58, 16]
-        self.statusBar = QtWidgets.QStatusBar(MainWindow)
-        # 3 main buttons that constitute the homepage
-        self.play = QtWidgets.QPushButton(self.horizontalLayoutWidget)
-        self.see_cards = QtWidgets.QPushButton(self.horizontalLayoutWidget)
-        self.create_cards = QtWidgets.QPushButton(self.horizontalLayoutWidget)
-        self.maximum_size = [16777215, 16777215]
 
-        self.enter_subject_label = QtWidgets.QLabel(MainWindow)
-        self.enter_subject = QtWidgets.QLineEdit(MainWindow)
-        self.new_subject = QtWidgets.QPushButton(MainWindow)
-        self.button_list = list()
-        self.title = QtWidgets.QLabel(MainWindow)
+def HometoGame():
+    """ Creates another window, using the class ... Seeks the existing subjects in database and shows the new window.
+
+        :return:
+    """
+    subject_list = main.subjects_in_database()
+    GameWindow = QtWidgets.QMainWindow()
+    ManageGame(DisplayChoices(GameWindow, subject_list, False))
+    GameWindow.show()
+
+
+class ManageCreation:
+    def __init__(self, first_display):
+        """
+
+        :param first_display: object from the class DisplayChoices
+        """
+        self.title = "FLASHCARDS"
+        self.display = first_display
 
     def setupUiHomepage(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(self.window_size[0], self.window_size[1])
-        self.centralwidget.setObjectName("Central Widget")
-        self.main_title.setGeometry(QtCore.QRect(self.title_size[0], self.title_size[1], self.title_size[2],
-                                                 self.title_size[3]))
-        self.main_title.setObjectName("Main Title")
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(self.layout_size[0], self.layout_size[1],
-                                                             self.layout_size[2], self.layout_size[3]))
-        self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout.setObjectName("Horizontal Layout")
-        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        size_policy.setHorizontalStretch(0)
-        size_policy.setVerticalStretch(0)
-        size_policy.setHeightForWidth(self.create_cards.sizePolicy().hasHeightForWidth())
-        self.create_cards.setSizePolicy(size_policy)
-        self.create_cards.setMaximumSize(QtCore.QSize(self.maximum_size[0], self.maximum_size[1]))
-        self.create_cards.setCursor(QtGui.QCursor(QtCore.Qt.OpenHandCursor))
-        self.create_cards.setAutoFillBackground(True)
-        self.create_cards.setObjectName("Create Cards")
-        self.horizontalLayout.addWidget(self.create_cards)
-        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        size_policy.setHorizontalStretch(0)
-        size_policy.setVerticalStretch(0)
-        size_policy.setHeightForWidth(self.see_cards.sizePolicy().hasHeightForWidth())
-        self.see_cards.setSizePolicy(size_policy)
-        self.see_cards.setMaximumSize(QtCore.QSize(self.maximum_size[0], self.maximum_size[1]))
-        self.see_cards.setAutoFillBackground(True)
-        self.see_cards.setObjectName("See Cards")
-        self.horizontalLayout.addWidget(self.see_cards)
-        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        size_policy.setHorizontalStretch(0)
-        size_policy.setVerticalStretch(0)
-        size_policy.setHeightForWidth(self.play.sizePolicy().hasHeightForWidth())
-        self.play.setSizePolicy(size_policy)
-        self.play.setAutoFillBackground(True)
-        self.play.setObjectName("play")
-        self.horizontalLayout.addWidget(self.play)
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.statusBar.setObjectName("statusBar")
-        MainWindow.setStatusBar(self.statusBar)
-        self.retranslateUi(MainWindow)
-        openWindow(self.create_cards, interface_new_card.Dialog)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.main_title.setText(_translate("MainWindow", "Hello !"))
-        self.create_cards.setText(_translate("MainWindow", "Create cards"))
-        self.see_cards.setText(_translate("MainWindow", "See the cards"))
-        self.play.setText(_translate("MainWindow", "Play"))
-
-    def homepageChoice(self, MainWindow):
-        self.play.clicked.connect(self.create_cards.close)
+        self.display.buttons_in_window()
+        self.display.new_button_func()
 
 
-def closeWindow(button, window):
-    button.clicked.connect(window.close())
+class DisplayChoices:
+    def __init__(self, window, list_of_titles, is_subject):
+        self.window = window
+        self.is_subject = is_subject
+        self.list_of_buttons = list()
+        self.list_of_titles = list_of_titles
+
+    def buttons_in_window(self):
+        i = 0
+        for title in self.list_of_titles:
+            self.list_of_buttons.append(create_button(self.window, title, i * 50))
+            i += 1
+        if self.is_subject:
+            self.list_of_buttons.append(create_button(self.window, "Nouvelle matière", len(self.list_of_titles) * 50))
+        else:
+            self.list_of_buttons.append(create_button(self.window, "Nouvelle leçon", len(self.list_of_titles) * 50))
 
 
-def openWindow(button, window):
-    button.cliked.connect(window.show())
+class ManageGame:
+    def __init__(self, window_display):
+        self.title = "Choix de la matière"
 
-
-def hideWidget(button, widget):
-    button.cliked.connect(widget.hide())
+        self.display = window_display
 
 
 if __name__ == "__main__":
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUiHomepage(MainWindow)
-    Dialog = QtWidgets.QDialog()
-    ui = interface_new_card.Ui_Dialog()
-    ui.interface_new_card.setupUi(Dialog)
-    MainWindow.show()
+
+    homepage = HomePage()
+    homepage.show()
     sys.exit(app.exec_())

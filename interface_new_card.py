@@ -1,7 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import main
 from functools import partial
-
+import interface
 
 def create_button(window, name, y):
     """Creates a button in the window, having a given name and height
@@ -14,9 +14,6 @@ def create_button(window, name, y):
     button = QtWidgets.QPushButton(name, window)
     button.setGeometry(QtCore.QRect(150, y, 300, 30))
     return button
-
-def coucou():
-    return 0
 
 class ManageWindow:
     def __init__(self, subject_list):
@@ -119,5 +116,3 @@ if __name__ == "__main__":
     ui.main_window.window().show()
 
     sys.exit(app.exec_())
-
-# close database
