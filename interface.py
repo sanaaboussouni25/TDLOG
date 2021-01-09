@@ -1,6 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import main
 
+
 def create_button(window, name, y):
     """Creates a button in the window, having a given name and height
 
@@ -12,6 +13,7 @@ def create_button(window, name, y):
     button = QtWidgets.QPushButton(name, window)
     button.setGeometry(QtCore.QRect(150, y, 300, 30))
     return button
+
 
 def HomePage():
     """ Creates the homepage of the game.
@@ -25,9 +27,10 @@ def HomePage():
     new_card.setGeometry(QtCore.QRect(150, 100, 300, 30))
     see_cards = QtWidgets.QPushButton("Voir les cartes", homepage)
     see_cards.setGeometry(QtCore.QRect(150, 150, 300, 30))
-
-    new_card.clicked.connect(lambda: HometoCreate())
-    play.clicked.connect(lambda: HometoGame())
+    creation_window = HometoCreate()
+    game_window = HometoGame()
+    new_card.clicked.connect(lambda: creation_window.show())
+    play.clicked.connect(lambda: game_window.show())
     # see_cards.clicked.connect(HometoDisplay)
 
     return homepage
@@ -41,7 +44,7 @@ def HometoCreate():
     subject_list = main.subjects_in_database()
     creation_manager = ManageCreation(DisplayChoices(QtWidgets.QMainWindow(), subject_list, True))
     CreateWindow = creation_manager.display.window
-    CreateWindow.show()
+    return CreateWindow
 
 
 def HometoGame():
@@ -50,10 +53,41 @@ def HometoGame():
         :return:
     """
     subject_list = main.subjects_in_database()
-    GameWindow = QtWidgets.QMainWindow()
-    ManageGame(DisplayChoices(GameWindow, subject_list, False))
-    GameWindow.show()
+    game_manager = ManageGame(DisplayChoices(QtWidgets.QMainWindow(), subject_list, False))
+    game_manager.display.display_list_buttons()
+    GameWindow = game_manager.display.window
+    game_manager.play()
+    return GameWindow
 
+
+class ManageGame:
+    def __init__(self, first_display):
+        self.title = "GAME"
+        self.display = first_display
+
+    def changing_button_list(self, lesson_names_in_subject):
+        """ From displaying subjects to displaying lessons
+
+                :param lesson_names_in_subject:
+                :return:
+                """
+        for button in self.display.list_of_buttons:
+            button.hide()
+        self.display.list_of_titles = lesson_names_in_subject
+        self.display.list_of_buttons = list()
+        self.display.is_subject = False
+        self.buttons_in_window()
+        for i in range(len(self.lesson_buttons)):
+            self.lesson_buttons[i].show()
+
+    def from_subject_to_lessons(self):
+        for i, name in enumerate(self.subject_names):
+            self.subject_buttons[i].clicked.connect(partial(self.changing_button_list,
+                                                            main.lessons_in_subject(name)))
+
+    def play(self):
+        self.from_subject_to_lessons()
+        self.display.display_list_buttons()
 
 class ManageCreation:
     def __init__(self, first_display):
@@ -64,9 +98,8 @@ class ManageCreation:
         self.title = "FLASHCARDS"
         self.display = first_display
 
-    def setupUiHomepage(self, MainWindow):
+    def setupUiHomepage(self):
         self.display.buttons_in_window()
-        self.display.new_button_func()
 
 
 class DisplayChoices:
@@ -86,6 +119,12 @@ class DisplayChoices:
         else:
             self.list_of_buttons.append(create_button(self.window, "Nouvelle leçon", len(self.list_of_titles) * 50))
 
+    def display_list_buttons(self):
+        i = 0
+        for title in self.list_of_titles:
+            self.list_of_buttons.append(create_button(self.window, title, i * 50))
+            i += 1
+
 
 class ManageGame:
     def __init__(self, window_display):
@@ -98,7 +137,6 @@ if __name__ == "__main__":
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
-
     homepage = HomePage()
     homepage.show()
     sys.exit(app.exec_())
