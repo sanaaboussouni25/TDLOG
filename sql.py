@@ -110,9 +110,10 @@ def choose_game_param():
     return question_list
 
 
+'''
 def is_answer_right(question, answer):
     cursor.execute('SELECT answer, nbr_asked, nbr_right FROM base WHERE question=?', (question,))
-    result = cursor.fetchall()
+    result = cursor.fetchall()[0]
     print(result)
     cursor.execute('UPDATE base SET nbr_asked = nbr_asked +1 WHERE question=?', (question,))
     print("Nb of times asked: " + str(result[0][1]))
@@ -130,6 +131,25 @@ def is_answer_right(question, answer):
         else:
             print("A bit of studying wouldn't hurt you...")
     print("Nb of times you got it right: " + str(result[0][2]))
+'''
+
+
+def is_answer_right(question, answer):
+    cursor.execute('SELECT answer, nbr_asked, nbr_right FROM base WHERE question=?', (question,))
+    result = cursor.fetchall()[0]
+    print(result)
+    cursor.execute('UPDATE base SET nbr_asked = nbr_asked +1 WHERE question=?', (question,))
+    MyData.commit()
+
+    if result[0] == answer:
+        return True, result[0]
+
+    return False, result[0]
+
+
+def update_nb_rights(question):
+    cursor.execute('UPDATE base SET nbr_right = nbr_right +1 WHERE question=?', (question,))
+    MyData.commit()
 
 
 # Lorsqu'on lui demande si il a eu juste et qu'il répond oui, inclure sa réponse
@@ -151,6 +171,12 @@ def lessons_nb(subject):
     return result[0][0]
 
 
+def questions_nb(lesson):
+    cursor.execute('SELECT COUNT (DISTINCT question)  FROM base WHERE lesson_name=?', (lesson,))
+    result = cursor.fetchall()
+    return result[0][0]
+
+
 def subject_name(i):
     cursor.execute('SELECT DISTINCT subject FROM base')
     result = cursor.fetchall()
@@ -168,14 +194,60 @@ def subjects_in_database():
     result = cursor.fetchall()
     return [elem[0] for elem in result]
 
+
 def lessons_in_subject(subject):
     results = []
     for i in range(lessons_nb(subject)):
         results.append(lesson_name(i, subject))
     return results
 
+
+def random_questions(chosen_lesson):
+    question_list = []
+    number = min(25, questions_nb(chosen_lesson))  # For now, the possible number of question is fixed to 25 (or the
+    # maximum if there isn't enough questions
+
+    cursor.execute('SELECT DISTINCT question FROM base WHERE lesson_name = ?',
+                   (chosen_lesson,))
+    results = cursor.fetchall()
+    for i in range(number):
+        # results are then randomly chosen
+        question_list.append(results.pop(rd.randrange(0, len(results)))[0])
+    return question_list
+
+
+def missed_questions(chosen_lesson):
+    question_list = []
+    cursor.execute('SELECT DISTINCT question, nbr_asked, nbr_right FROM base WHERE lesson_name = ?',
+                   (chosen_lesson,))
+    results = cursor.fetchall()
+    ratios = []
+    for i, r in enumerate(results):
+        if r[1] == 0:
+            ratios.append((0, i))
+        else:
+            ratios.append((r[2] / r[1], i))
+    ratios = sorted(ratios)
+
+    for x in ratios[:math.ceil(len(ratios) / 4)]:
+        question_list.append(results[x[1]][0])
+
+    return question_list
+
+
+def least_asked_questions(chosen_lesson):
+    question_list = []
+    cursor.execute('SELECT DISTINCT question, nbr_asked FROM base WHERE lesson_name = ? ORDER BY nbr_asked ASC',
+                   (chosen_lesson,))
+    results = cursor.fetchall()
+    for r in results[:math.ceil(len(results) / 4)]:
+        question_list.append(r[0])
+
+    return question_list
+
+
 if __name__ == "__main__":
     new_question()
-    #choose_game_param()
-    #subjects_nb = subjects_nb()
-    #subjects_list = [subject_name(i) for i in range(subjects_nb)]
+    # choose_game_param()
+    # subjects_nb = subjects_nb()
+    # subjects_list = [subject_name(i) for i in range(subjects_nb)]

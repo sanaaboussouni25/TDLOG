@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-import main
+import sql
 from functools import partial
 import interface
 
@@ -83,7 +83,7 @@ class ManageWindow:
         self.buttons_in_window(False)
         for i, name in enumerate(self.subject_names):
             self.subject_buttons[i].clicked.connect(partial(self.changing_button_list,
-                                                            main.lessons_in_subject(name)))
+                                                            sql.lessons_in_subject(name)))
 
     def HometoChoice(self):
         self.setupUiChoicePage()
@@ -109,7 +109,7 @@ class ManageWindow:
 if __name__ == "__main__":
     import sys
 
-    Subject_list = main.subjects_in_database()
+    Subject_list = sql.subjects_in_database()
     app = QtWidgets.QApplication(sys.argv)
     ui = ManageWindow(Subject_list)
     ui.setupUiHomePage()
