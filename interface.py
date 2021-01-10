@@ -30,7 +30,7 @@ def create_line_edit(window, label, y):
     line_edit_label.show()
     line_edit.show()
     line_edit.setGeometry(QtCore.QRect(150, y+30, 300, 30))
-    return line_edit
+    return line_edit, line_edit_label
 
 def create_text(window, text, x,y):
     text_label = QtWidgets.QLabel(text,window)
@@ -95,10 +95,7 @@ class ManageCreation:
         """
         self.title =  create_text(window,"Nouvelle flashcard", 300, 10)
         self.display = first_display
-
-
-
-
+        self.new_question=list()
 
     def action_subject(self):
         self.display.buttons_in_window()
@@ -106,17 +103,53 @@ class ManageCreation:
             if i < len(self.display.list_of_buttons) - 1:
                 self.display.list_of_buttons[i].clicked.connect(partial(self.from_subject_to_lesson,i))
             if i == len(self.display.list_of_buttons) - 1 :
-                self.display.list_of_buttons[i].clicked.connect(partial(self.new_lesson))
+                self.display.list_of_buttons[i].clicked.connect(partial(self.new_subject))
 
-
-    def new_lesson(self):
+    def new_subject(self):
         for k in range(len(self.display.list_of_buttons)):
             self.display.list_of_buttons[k].hide()
-        self.title.setText("Nouvelle leçon")
-        new_display= EnterText(self.display.window, "Entrer une nouvelle leçon" )
+        self.title.setText("Nouvelle matière")
+        new_display= EnterText(self.display.window, "Entrer une nouvelle matière" )
         self.display= new_display
         self.display.assert_button()
-        line_edit= self.display.enter_text_button()
+        self.display.enter_text_button()
+
+        self.display.list_of_widgets[0].clicked.connect(partial(self.add_subject))
+
+    def add_subject(self):
+        self.display.content = self.display.list_of_widgets[1].text()
+        self.new_question.append(self.display.content)
+        for k in range(len(self.display.list_of_widgets)):
+            self.display.list_of_widgets[k].hide()
+        self.new_lesson()
+
+    def new_lesson(self):
+        self.title.setText("Nouvelle leçon")
+        new_display = EnterText(self.display.window, "Entrer une nouvelle leçon")
+        self.display = new_display
+        self.display.assert_button()
+        self.display.enter_text_button()
+        self.display.list_of_widgets[0].clicked.connect(partial(self.add_lesson))
+
+    def add_lesson(self):
+        self.display.content = self.display.list_of_widgets[1].text()
+        self.new_question.append(self.display.content)
+        for k in range(len(self.display.list_of_widgets)):
+            self.display.list_of_widgets[k].hide()
+        self.new_question()
+
+    def new_question(self):
+        self.title.setText("Nouvelle leçon")
+        new_display = EnterText(self.display.window, "Entrer une nouvelle leçon")
+        self.display = new_display
+        self.display.assert_button()
+        self.display.enter_text_button()
+        self.display.list_of_widgets[0].clicked.connect(partial(self.add_question))
+
+
+
+
+
 
 
     def from_subject_to_lesson(self,i):
@@ -134,17 +167,25 @@ class ManageCreation:
 
 
 
+
+
+
+
 class EnterText:
     def __init__(self, window, label):
         self.window = window
         self.label= label
-        self.content = ""
-
+        self.list_of_widgets = list()
+        self.content =""
     def assert_button(self):
-        create_button(self.window, "Valider", 400)
-
+        self.list_of_widgets.append(create_button(self.window, "Valider", 200))
     def enter_text_button(self):
-        return create_line_edit(self.window, self.label, 100)
+        w1,w2=create_line_edit(self.window, self.label, 100)
+        self.list_of_widgets.append(w1)
+        self.list_of_widgets.append(w2)
+
+
+
 
 
 

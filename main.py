@@ -136,7 +136,7 @@ def is_answer_right(question, answer):
 # comme nouvelle alternative à la question ?
 
 def new_subject(text):
-    print(text)
+    print(new_subject)
 
 
 def subjects_nb():
