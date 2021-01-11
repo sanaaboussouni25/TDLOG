@@ -161,6 +161,7 @@ class ManageCreation:
 
     def add_lesson(self):
         self.display.content = self.display.list_of_widgets[0].text()
+        print(self.display.content)
         self.new_question_data.append(self.display.content)
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
@@ -181,10 +182,24 @@ class ManageCreation:
         self.new_question_data.append(self.display.content)
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
-        sql.insert_question(self.new_question_data)
-        self.last_step()
+
+        self.new_answer()
 
     def last_step(self):
+        for k in range(len(self.display.list_of_widgets)):
+            self.display.list_of_widgets[k].hide()
+        self.title.setText("Continuer ? ")
+        new_display = DisplayChoices(self.display.window, self.display.layout, ["Nouvelle question dans "+self.new_question_data[1],"Terminé"],False,False)
+        self.display = new_display
+        self.display.buttons_in_window()
+        self.display.list_of_widgets[0].clicked.connect(partial(self.redo))
+        self.display.list_of_widgets[1].clicked.connect(partial(self.display.window.close))
+
+    def redo(self):
+        self.new_question_data.pop()
+        self.new_question_data.pop()
+        self.new_question()
+
 
 
     def new_answer(self):
@@ -199,11 +214,14 @@ class ManageCreation:
         self.display.list_of_widgets[2].clicked.connect(partial(self.add_answer))
 
     def add_answer(self):
-        self.display.content = self.display.list_of_widgets[1].text()
+        self.display.content = self.display.list_of_widgets[0].text()
+
         self.new_question_data.append(self.display.content)
+        print(self.new_question_data)
+        sql.insert_question(self.new_question_data)
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
-        self.new_answer()
+        self.last_step()
 
     def from_subject_to_lesson(self, i):
         self.title.setText(self.display.list_of_titles[i])
@@ -216,13 +234,24 @@ class ManageCreation:
         self.display = new_display
         self.action_lessons()
 
+    def new_question_i(self,i):
+        self.new_question_data.append(self.display.list_of_titles[i])
+        for k in range(len(self.display.list_of_widgets)):
+            self.display.list_of_widgets[k].hide()
+        self.title.setText("Nouvelle question")
+        new_display = EnterText(self.display.window, self.display.layout, "Entrer une nouvelle question")
+        self.display = new_display
+        self.display.enter_text_button()
+        self.display.assert_button()
+        self.display.list_of_widgets[2].clicked.connect(partial(self.add_question))
+
     def action_lessons(self):
         self.display.buttons_in_window()
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].show()
         for i in range(len(self.display.list_of_widgets)):
             if i < len(self.display.list_of_widgets) - 1:
-                self.display.list_of_widgets[i].clicked.connect(partial(self.new_question))
+                self.display.list_of_widgets[i].clicked.connect(partial(self.new_question_i,i))
             if i == len(self.display.list_of_widgets) - 1:
                 self.display.list_of_widgets[i].clicked.connect(partial(self.new_lesson))
 
