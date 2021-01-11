@@ -58,87 +58,15 @@ def new_question():
         q_r)
     MyData.commit()
 
+
 def insert_question(question_data):
-    question_type="text"
+    question_type = "text"
     q_r = (question_data[0], question_data[1], question_data[2], question_data[3], question_type, 0, 0)
     cursor.execute(
         'INSERT INTO base (subject, lesson_name, question, answer, question_type,nbr_asked,nbr_right) VALUES '
         '(?,?,?,?,?,?,?) ',
         q_r)
     MyData.commit()
-def choose_game_param():
-    cursor.execute('SELECT DISTINCT subject FROM base ')
-    current_subjects = [str(m[0]) for m in cursor.fetchall()]
-    print("Your subjects", current_subjects)
-    subject_select = str(input("Which subject do you want to work on? "))
-    while subject_select not in current_subjects:
-        print("This subject does not exist.")
-        subject_select = input("Which subject do you want to work on? ")
-    cursor.execute('SELECT DISTINCT lesson_name FROM base WHERE subject=?', (subject_select,))
-    current_lessons = [str(l[0]) for l in cursor.fetchall()]
-    print("Your lessons", current_lessons)
-    lesson_select = str(input("Which lesson do you want to work on? "))
-    while lesson_select not in current_lessons:
-        print("This lesson does not exist.")
-        lesson_select = str(input("Which lesson do you want to work on? "))
-    mode = int(input("Choose your game mode : 1 = random, 2 = 25% most missed questions, "
-                     "3 = 25% least asked questions"))
-    question_list = []
-    if mode == 1:
-        number = int(input("How many questions do you want to be asked?"))
-        cursor.execute('SELECT DISTINCT question FROM base WHERE lesson_name = ?',
-                       (lesson_select,))
-        results = cursor.fetchall()
-        for i in range(number):
-            # results are then randomly chosen
-            question_list.append(results.pop(rd.randrange(0, len(results)))[0])
-
-    if mode == 2:
-        cursor.execute('SELECT DISTINCT question, nbr_asked, nbr_right FROM base WHERE lesson_name = ?',
-                       (lesson_select,))
-        results = cursor.fetchall()
-        ratios = []
-        for i, r in enumerate(results):
-            if r[1] == 0:
-                ratios.append((0, i))
-            else:
-                ratios.append((r[2] / r[1], i))
-        ratios = sorted(ratios)
-
-        for x in ratios[:math.ceil(len(ratios) / 4)]:
-            question_list.append(results[x[1]][0])
-
-    if mode == 3:
-        cursor.execute('SELECT DISTINCT question, nbr_asked FROM base WHERE lesson_name = ? ORDER BY nbr_asked ASC',
-                       (lesson_select,))
-        results = cursor.fetchall()
-        for r in results[:math.ceil(len(results) / 4)]:
-            question_list.append(r[0])
-    return question_list
-
-
-'''
-def is_answer_right(question, answer):
-    cursor.execute('SELECT answer, nbr_asked, nbr_right FROM base WHERE question=?', (question,))
-    result = cursor.fetchall()[0]
-    print(result)
-    cursor.execute('UPDATE base SET nbr_asked = nbr_asked +1 WHERE question=?', (question,))
-    print("Nb of times asked: " + str(result[0][1]))
-    MyData.commit()
-    if isinstance(answer, (int, float)):
-        if result[0][0] == answer:
-            return True
-        return 'False, the right answer was ' + str(result[0][0])
-    else:
-        check = input('The answer was ' + str(result[0][0]) + ', were you right?')
-        if check == 'Yes':
-            cursor.execute('UPDATE base SET nbr_right = nbr_right +1 WHERE question=?', (question,))
-            MyData.commit()
-            print("Well done")
-        else:
-            print("A bit of studying wouldn't hurt you...")
-    print("Nb of times you got it right: " + str(result[0][2]))
-'''
 
 
 def is_answer_right(question, answer):
@@ -147,8 +75,11 @@ def is_answer_right(question, answer):
     print(result)
     cursor.execute('UPDATE base SET nbr_asked = nbr_asked +1 WHERE question=?', (question,))
     MyData.commit()
-
-    if result[0] == answer:
+    right_answer = result[0].lower()  # .lower() allows to ignore differences of capital letters
+    answer = answer.lower()
+    right_answer = right_answer.replace(" ", "")  # .replace(" ", "") allows to ignore differences of spacing
+    answer = answer.replace(" ", "")
+    if right_answer == answer:
         return True, result[0]
 
     return False, result[0]

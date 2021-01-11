@@ -345,12 +345,14 @@ class ManageGame:
 
         :param i: the index of the game mode the user has clicked on
         """
-
         self.game_mode = i
+        # Initializing
+        self.score = 0
+        self.current_question = 0
         self.creating_question_list()
-        self.title.setText(self.chosen_subject + " - " + self.chosen_lesson + " - " + "Question 1/"
-                           + str(min(25, sql.questions_nb(self.chosen_lesson))) + "\n" + "Score : 0/" +
-                           str(min(25, sql.questions_nb(self.chosen_lesson))))
+
+        self.title.setText(self.chosen_subject + " - " + self.chosen_lesson + " - Question 1/"
+                           + str(len(self.question_list)) + "\n" + "Score : 0/" + str(len(self.question_list)))
 
         for k in range(len(self.display.list_of_widgets)):
             # We need to first hide the existing buttons in the window
@@ -361,8 +363,8 @@ class ManageGame:
         self.display.enter_text_button()
         self.display.assert_button()
 
-        self.display.list_of_widgets[2].clicked.connect(partial(self.display_verify_answer))  # Makes a call to the next
-        # event by clicking on "Valider"
+        # Makes a call to the next event by clicking on "Valider"
+        self.display.list_of_widgets[2].clicked.connect(partial(self.display_verify_answer))
 
     def event_display_first_question(self):
         """ Creates the following event: clicking on the button of a game mode i makes a call to the method
@@ -402,29 +404,58 @@ class ManageGame:
     def display_next_question(self, is_right):
         """ Updates in the database the number of correct answers of the previous question, updates the title of the
         window and the display to show the next question. At the end, makes a call to the method display_verify_answer.
+        If it is the last question, it updates the score and calls the method display_finish_quiz.
 
         :param is_right: boolean indicating if the user was right about the previous question
         :return: nothing
         """
+        if self.current_question >= len(self.question_list) - 1:
+            if is_right:
+                sql.update_nb_rights(self.question_list[self.current_question])
+                self.score += 1
+            self.display_finish_quiz()
+
+        else:
+            for k in range(len(self.display.list_of_widgets)):
+                self.display.list_of_widgets[k].hide()
+
+            if is_right:
+                sql.update_nb_rights(self.question_list[self.current_question])
+                self.score += 1
+            self.current_question += 1
+            self.title.setText(self.chosen_subject + " - " + self.chosen_lesson + " - " + "Question "
+                               + str(self.current_question + 1) + "/" + str(len(self.question_list))
+                               + "\n" + "Score : " + str(self.score) + "/"
+                               + str(len(self.question_list)))
+
+            new_display = EnterText(self.display.window, self.display.layout, self.question_list[self.current_question])
+            self.display = new_display
+            self.display.enter_text_button()
+            self.display.assert_button()
+
+            self.display.list_of_widgets[2].clicked.connect(partial(self.display_verify_answer))  # Makes a call to the
+            # next event by clicking on "Valider"
+
+    def display_finish_quiz(self):
+        """ Print the final score, and allows the user to restart a quiz with the same parameters or to close the game
+        window.
+
+        :return:
+        """
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
 
-        if is_right:
-            sql.update_nb_rights(self.question_list[self.current_question])
-            self.score += 1
-        self.current_question += 1
-        self.title.setText(self.chosen_subject + " - " + self.chosen_lesson + " - " + "Question "
-                           + str(self.current_question + 1) + "/" + str(min(25, sql.questions_nb(self.chosen_lesson)))
-                           + "\n" + "Score : " + str(self.score) + "/"
-                           + str(min(25, sql.questions_nb(self.chosen_lesson))))
-
-        new_display = EnterText(self.display.window, self.display.layout, self.question_list[self.current_question])
+        self.title.setText("Votre score final : " + str(self.score) + "/" + str(len(self.question_list))
+                           + " . Voulez-vous recommencer ?")
+        new_display = DisplayChoices(self.display.window, self.display.layout, ["Recommencer", "Terminer"],
+                                     False, False)
+        # Updating the display
         self.display = new_display
-        self.display.enter_text_button()
-        self.display.assert_button()
+        self.display.buttons_in_window()
 
-        self.display.list_of_widgets[2].clicked.connect(partial(self.display_verify_answer))  # Makes a call to the
-        # next event by clicking on "Valider"
+        # Makes a call to the next event by clicking on Yes or No
+        self.display.list_of_widgets[0].clicked.connect(partial(self.display_first_question, self.game_mode))
+        self.display.list_of_widgets[1].clicked.connect(partial(self.display.window.close))
 
 
 class EnterText:
