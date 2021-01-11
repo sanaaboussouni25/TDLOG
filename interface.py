@@ -54,10 +54,9 @@ def HomePage():
     new_card.setGeometry(QtCore.QRect(150, 100, 300, 30))
     see_cards = QtWidgets.QPushButton("Voir les cartes", homepage)
     see_cards.setGeometry(QtCore.QRect(150, 150, 300, 30))
-    HC = HometoCreate()
-    HG = HometoGame()
-    new_card.clicked.connect(partial(HC.show))
-    play.clicked.connect(partial(HG.show))
+
+    new_card.clicked.connect(partial(HometoCreate))
+    play.clicked.connect(partial(HometoGame))
     # see_cards.clicked.connect(HometoDisplay)
 
     return homepage
@@ -75,7 +74,7 @@ def HometoCreate():
 
     creation_manager.action_subject()
     CreateWindow = creation_manager.display.window
-    return CreateWindow
+    CreateWindow.show()
 
 
 def HometoGame():
@@ -87,10 +86,9 @@ def HometoGame():
     window_game = QtWidgets.QMainWindow()
     game_manager = ManageGame(window_game, DisplayChoices(window_game, subject_list, False, False))
     game_manager.event_display_lesson()
-    # game_manager.event_display_game_mode()
     assert isinstance(game_manager.display.window, QtWidgets.QMainWindow)
     GameWindow = game_manager.display.window
-    return GameWindow
+    GameWindow.show()
 
 
 class ManageCreation:
@@ -172,6 +170,7 @@ class ManageGame:
         self.game_mode = -1
         self.question_list = []
         self.current_question = 0
+        self.score = 0
 
     def display_lesson(self, i):
         """ Switch the display from showing the subjects to showing the lessons associated to the subject i chosen by
@@ -254,7 +253,8 @@ class ManageGame:
         self.game_mode = i
         self.creating_question_list()
         self.title.setText(self.chosen_subject + " - " + self.chosen_lesson + " - " + "Question 1/"
-                           + str(min(25, sql.questions_nb(self.chosen_lesson))))
+                           + str(min(25, sql.questions_nb(self.chosen_lesson))) + "\n" + "Score : 0/" +
+                           str(min(25, sql.questions_nb(self.chosen_lesson))))
 
         for k in range(len(self.display.list_of_widgets)):
             # We need to first hide the existing buttons in the window
@@ -276,6 +276,12 @@ class ManageGame:
             self.display.list_of_widgets[i].clicked.connect(partial(self.display_first_question, i))
     
     def display_verify_answer(self):
+        """ Collects the answer given by the user and compare it with the answer in the database. If it is the same, it
+        calls display_next_question. If not, it creates a display where the user is asked if he/she were right (in order
+        to manage typo errors).
+
+        :return: nothing
+        """
 
         self.display.text = self.display.list_of_widgets[1].text()  # Collecting the answer given by the user
         is_right, answer = sql.is_answer_right(self.question_list[self.current_question], self.display.text)
@@ -294,18 +300,28 @@ class ManageGame:
             self.display.buttons_in_window()
 
             # Makes a call to the next event by clicking on Yes or No
-            self.display.list_of_widgets[0].clicked.connect(partial(self.display_next_question), True)
-            self.display.list_of_widgets[1].clicked.connect(partial(self.display_next_question), False)
+            self.display.list_of_widgets[0].clicked.connect(partial(self.display_next_question, True))
+            self.display.list_of_widgets[1].clicked.connect(partial(self.display_next_question, False))
 
     def display_next_question(self, is_right):
+        """ Updates in the database the number of correct answers of the previous question, updates the title of the
+        window and the display to show the next question. At the end, makes a call to the method display_verify_answer.
+
+        :param is_right: boolean indicating if the user was right about the previous question
+        :return: nothing
+        """
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
 
         if is_right:
+            print("entrée")
             sql.update_nb_rights(self.question_list[self.current_question])
+            self.score += 1
         self.current_question += 1
         self.title.setText(self.chosen_subject + " - " + self.chosen_lesson + " - " + "Question "
-                           + str(self.current_question + 1) + "/" + str(min(25, sql.questions_nb(self.chosen_lesson))))
+                           + str(self.current_question + 1) + "/" + str(min(25, sql.questions_nb(self.chosen_lesson)))
+                           + "\n" + "Score : "+ str(self.score) + "/"
+                           + str(min(25, sql.questions_nb(self.chosen_lesson))))
 
         new_display = EnterText(self.display.window, self.question_list[self.current_question])
         self.display = new_display
