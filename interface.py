@@ -183,7 +183,11 @@ class ManageCreation:
         self.new_question_data.append(self.display.content)
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
-        self.new_answer()
+        sql.insert_question(self.new_question_data)
+        self.last_step()
+
+    def last_step(self):
+
 
     def new_answer(self):
 

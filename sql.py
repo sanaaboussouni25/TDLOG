@@ -58,7 +58,14 @@ def new_question():
         q_r)
     MyData.commit()
 
-
+def insert_question(question_data):
+    question_type="text"
+    q_r = (question_data[0], question_data[1], question_data[2], question_data[3], question_type, 0, 0)
+    cursor.execute(
+        'INSERT INTO base (subject, lesson_name, question, answer, question_type,nbr_asked,nbr_right) VALUES '
+        '(?,?,?,?,?,?,?) ',
+        q_r)
+    MyData.commit()
 def choose_game_param():
     cursor.execute('SELECT DISTINCT subject FROM base ')
     current_subjects = [str(m[0]) for m in cursor.fetchall()]
