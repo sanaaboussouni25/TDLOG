@@ -2,9 +2,10 @@ from functools import partial
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sql
+width=500
+height=500
 
-
-def create_button(window, name, y):
+def create_button(window,  name, y):
     """Creates a button in the window, having a given name and height
 
     :param window:
@@ -12,8 +13,10 @@ def create_button(window, name, y):
     :param y: the height of the button (depends on the total number of buttons)
     :return: the button in the right shape with the right name
     """
-    button = QtWidgets.QPushButton(name, window)
+    button = QtWidgets.QPushButton(name,window)
+
     button.setGeometry(QtCore.QRect(150, y, 300, 30))
+
     button.show()
     return button
 
@@ -23,6 +26,7 @@ def create_line_edit(window, label, y):
 
         :param label: the name of the button, like "New window"
         :param window:
+        :param name: the name of the button, like "New window"
         :param y: the height of the button (depends on the total number of buttons)
         :return: the button in the right shape with the right name
         """
@@ -41,19 +45,28 @@ def create_text(window, text, x, y):
     return text_label
 
 
+
+
 def HomePage():
     """ Creates the homepage of the game.
 
     :return: nothing
     """
-    homepage = QtWidgets.QMainWindow()
 
+    homepage = QtWidgets.QMainWindow()
+    wid=QtWidgets.QWidget()
+    homepage.setCentralWidget(wid)
+    layout= QtWidgets.QVBoxLayout()
     play = QtWidgets.QPushButton("Jouer", homepage)
     play.setGeometry(QtCore.QRect(150, 50, 300, 30))
+    layout.addWidget(play)
     new_card = QtWidgets.QPushButton("Nouvelle carte", homepage)
     new_card.setGeometry(QtCore.QRect(150, 100, 300, 30))
+    layout.addWidget(new_card)
     see_cards = QtWidgets.QPushButton("Voir les cartes", homepage)
     see_cards.setGeometry(QtCore.QRect(150, 150, 300, 30))
+    layout.addWidget(see_cards)
+    wid.setLayout(layout)
     HC = HometoCreate()
     HG = HometoGame()
     new_card.clicked.connect(partial(HC.show))
@@ -69,9 +82,9 @@ def HometoCreate():
     :return:
     """
     subject_list = sql.subjects_in_database()
-    window_create = QtWidgets.QMainWindow()
+    window_create=QtWidgets.QMainWindow()
 
-    creation_manager = ManageCreation(window_create, DisplayChoices(window_create, subject_list, True, True))
+    creation_manager = ManageCreation(window_create,DisplayChoices(window_create, subject_list, True, True))
 
     creation_manager.action_subject()
     CreateWindow = creation_manager.display.window
@@ -85,6 +98,7 @@ def HometoGame():
     """
     subject_list = sql.subjects_in_database()
     window_game = QtWidgets.QMainWindow()
+
     game_manager = ManageGame(window_game, DisplayChoices(window_game, subject_list, False, False))
     game_manager.event_display_lesson()
     # game_manager.event_display_game_mode()
@@ -99,32 +113,31 @@ class ManageCreation:
 
         :param first_display: object from the class DisplayChoices
         """
-        self.title = create_text(window, "Nouvelle flashcard", 300, 10)
+        self.title =  create_text(window,"Nouvelle flashcard", 300, 10)
         self.display = first_display
-        self.new_question = list()
+        self.new_question_data=list()
 
     def action_subject(self):
         self.display.buttons_in_window()
         for i in range(len(self.display.list_of_widgets)):
             if i < len(self.display.list_of_widgets) - 1:
-                self.display.list_of_widgets[i].clicked.connect(partial(self.from_subject_to_lesson, i))
-            if i == len(self.display.list_of_widgets) - 1:
+                self.display.list_of_widgets[i].clicked.connect(partial(self.from_subject_to_lesson,i))
+            if i == len(self.display.list_of_widgets) - 1 :
                 self.display.list_of_widgets[i].clicked.connect(partial(self.new_subject))
 
     def new_subject(self):
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
         self.title.setText("Nouvelle matière")
-        new_display = EnterText(self.display.window, "Entrer une nouvelle matière")
-        self.display = new_display
+        new_display= EnterText(self.display.window, "Entrer une nouvelle matière" )
+        self.display= new_display
         self.display.assert_button()
         self.display.enter_text_button()
-
         self.display.list_of_widgets[0].clicked.connect(partial(self.add_subject))
 
     def add_subject(self):
-        self.display.text = self.display.list_of_widgets[1].text()
-        self.new_question.append(self.display.text)
+        self.display.content = self.display.list_of_widgets[1].text()
+        self.new_question_data.append(self.display.content)
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
         self.new_lesson()
@@ -138,29 +151,66 @@ class ManageCreation:
         self.display.list_of_widgets[0].clicked.connect(partial(self.add_lesson))
 
     def add_lesson(self):
-        self.display.text = self.display.list_of_widgets[1].text()
-        self.new_question.append(self.display.text)
+        self.display.content = self.display.list_of_widgets[1].text()
+        self.new_question_data.append(self.display.content)
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
         self.new_question()
 
     def new_question(self):
-        self.title.setText("Nouvelle leçon")
-        new_display = EnterText(self.display.window, "Entrer une nouvelle leçon")
+        for k in range(len(self.display.list_of_widgets)):
+            self.display.list_of_widgets[k].hide()
+        self.title.setText("Nouvelle question")
+        new_display = EnterText(self.display.window, "Entrer une nouvelle question")
         self.display = new_display
         self.display.assert_button()
         self.display.enter_text_button()
         self.display.list_of_widgets[0].clicked.connect(partial(self.add_question))
 
+    def add_question(self):
+        self.display.content = self.display.list_of_widgets[1].text()
+        self.new_question_data.append(self.display.content)
+        for k in range(len(self.display.list_of_widgets)):
+            self.display.list_of_widgets[k].hide()
+        self.new_answer()
+
+    def new_answer(self):
+
+        self.title.setText("Nouvelle réponse")
+        print(self.new_question_data)
+        new_display = EnterText(self.display.window, "Entrer une nouvelle réponse")
+        self.display = new_display
+        self.display.assert_button()
+        self.display.enter_text_button()
+        self.display.list_of_widgets[0].clicked.connect(partial(self.add_answer))
+    def add_answer(self):
+        self.display.content = self.display.list_of_widgets[1].text()
+        self.new_question_data.append(self.display.content)
+        for k in range(len(self.display.list_of_widgets)):
+            self.display.list_of_widgets[k].hide()
+        self.new_answer()
+
     def from_subject_to_lesson(self, i):
         self.title.setText(self.display.list_of_titles[i])
-
+        self.new_question_data.append(self.display.list_of_titles[i])
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
         new_display = DisplayChoices(self.display.window, sql.lessons_in_subject(self.display.list_of_titles[i]), True,
                                      False)
         self.display = new_display
+        self.action_lessons()
+
+    def action_lessons(self):
         self.display.buttons_in_window()
+        for k in range(len(self.display.list_of_widgets)):
+            self.display.list_of_widgets[k].show()
+        for i in range(len(self.display.list_of_widgets)):
+            if i < len(self.display.list_of_widgets) - 1:
+                self.display.list_of_widgets[i].clicked.connect(partial(self.new_question))
+            if i == len(self.display.list_of_widgets) - 1 :
+                self.display.list_of_widgets[i].clicked.connect(partial(self.new_lesson))
+
+
 
 
 class ManageGame:
@@ -264,17 +314,17 @@ class ManageGame:
         self.display = new_display
         self.display.assert_button()
         self.display.enter_text_button()
-        
+
         self.display.list_of_widgets[0].clicked.connect(partial(self.display_verify_answer))  # Makes a call to the next
         # event by clicking on "Valider"
-            
+
     def event_display_first_question(self):
         """ Creates the following event: clicking on the button of a game mode i makes a call to the method
         display_first_question(i). """
 
         for i in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[i].clicked.connect(partial(self.display_first_question, i))
-    
+
     def display_verify_answer(self):
 
         self.display.text = self.display.list_of_widgets[1].text()  # Collecting the answer given by the user
@@ -307,33 +357,22 @@ class ManageGame:
         self.title.setText(self.chosen_subject + " - " + self.chosen_lesson + " - " + "Question "
                            + str(self.current_question + 1) + "/" + str(min(25, sql.questions_nb(self.chosen_lesson))))
 
-        new_display = EnterText(self.display.window, self.question_list[self.current_question])
-        self.display = new_display
-        self.display.assert_button()
-        self.display.enter_text_button()
-
-        self.display.list_of_widgets[0].clicked.connect(partial(self.display_verify_answer))  # Makes a call to the
-        # next event by clicking on "Valider"
-
-
 class EnterText:
     def __init__(self, window, label):
         self.window = window
-        self.label = label
+        self.label= label
         self.list_of_widgets = list()
-        self.text = ""
-
+        self.content =""
     def assert_button(self):
         self.list_of_widgets.append(create_button(self.window, "Valider", 200))
-
     def enter_text_button(self):
-        w1, w2 = create_line_edit(self.window, self.label, 100)
+        w1,w2=create_line_edit(self.window, self.label, 100)
         self.list_of_widgets.append(w1)
         self.list_of_widgets.append(w2)
 
 
 class DisplayChoices:
-    def __init__(self, window, list_of_titles, is_new, is_subject):
+    def __init__(self, window,list_of_titles, is_new, is_subject):
         """
 
         :param window: the window where the choices are displayed
@@ -343,23 +382,25 @@ class DisplayChoices:
         :param is_subject: allow to choose between the button "Nouvelle matière" and the button "Nouvelle leçon"
         """
         self.window = window
-        self.is_new = is_new
         self.is_subject = is_subject
         self.list_of_widgets = list()
         self.list_of_titles = list_of_titles
+        self.is_new = is_new
 
     def buttons_in_window(self):
         i = 0
+
         for title in self.list_of_titles:
-            self.list_of_widgets.append(create_button(self.window, title, 50 + i * 50))
+            self.list_of_widgets.append(create_button(self.window, title,50+ i * 50))
             i += 1
         if self.is_new:
             if self.is_subject:
-                self.list_of_widgets.append(create_button(self.window, "Nouvelle matière",
-                                                          50 + len(self.list_of_titles) * 50))
+                self.list_of_widgets.append(create_button(self.window, "Nouvelle matière", 50+ len(self.list_of_titles) * 50))
             else:
-                self.list_of_widgets.append(
-                    create_button(self.window, "Nouvelle leçon", 50 + len(self.list_of_titles) * 50))
+                self.list_of_widgets.append(create_button(self.window,  "Nouvelle leçon", 50+ len(self.list_of_titles) * 50))
+
+
+
 
 
 if __name__ == "__main__":
@@ -367,6 +408,6 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
 
-    the_homepage = HomePage()
-    the_homepage.show()
+    homepage = HomePage()
+    homepage.show()
     sys.exit(app.exec_())
