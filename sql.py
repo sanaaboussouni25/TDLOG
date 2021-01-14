@@ -252,6 +252,24 @@ def least_asked_questions(chosen_lesson):
 
     return question_list
 
+def get_all_questions(chosen_subject,chosen_lesson):
+    question_list = []
+    cursor.execute('SELECT DISTINCT question FROM base WHERE subject = ? AND lesson_name = ? ORDER BY id ASC',
+                   (chosen_subject, chosen_lesson,))
+    results = cursor.fetchall()
+    for r in results[:math.ceil(len(results) / 4)]:
+        question_list.append(r[0])
+
+    return question_list
+def get_all_answers(chosen_subject,chosen_lesson):
+    answer_list = []
+    cursor.execute('SELECT DISTINCT answer FROM base WHERE subject = ? AND lesson_name = ? ORDER BY id ASC',
+                   (chosen_subject, chosen_lesson,))
+    results = cursor.fetchall()
+    for r in results[:math.ceil(len(results) / 4)]:
+        answer_list.append(r[0])
+
+    return answer_list
 
 if __name__ == "__main__":
     new_question()
