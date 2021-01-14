@@ -185,19 +185,19 @@ def least_asked_questions(chosen_lesson):
 
 def get_all_questions(chosen_subject,chosen_lesson):
     question_list = []
-    cursor.execute('SELECT DISTINCT question FROM base WHERE subject = ? AND lesson_name = ? ORDER BY id ASC',
+    cursor.execute('SELECT question FROM base WHERE subject = ? AND lesson_name = ? ORDER BY id ASC',
                    (chosen_subject, chosen_lesson,))
     results = cursor.fetchall()
-    for r in results[:math.ceil(len(results) / 4)]:
+    for r in results:
         question_list.append(r[0])
 
     return question_list
 def get_all_answers(chosen_subject,chosen_lesson):
     answer_list = []
-    cursor.execute('SELECT DISTINCT answer FROM base WHERE subject = ? AND lesson_name = ? ORDER BY id ASC',
+    cursor.execute('SELECT answer FROM base WHERE subject = ? AND lesson_name = ? ORDER BY id ASC',
                    (chosen_subject, chosen_lesson,))
     results = cursor.fetchall()
-    for r in results[:math.ceil(len(results) / 4)]:
+    for r in results:
         answer_list.append(r[0])
 
     return answer_list
