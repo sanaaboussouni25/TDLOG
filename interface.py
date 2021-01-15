@@ -72,7 +72,6 @@ def HomePage():
     new_card.clicked.connect(partial(HometoCreate))
     play.clicked.connect(partial(HometoGame))
     see_cards.clicked.connect(partial(HometoCards))
-    # see_cards.clicked.connect(HometoDisplay)
 
     return homepage
 
@@ -87,7 +86,7 @@ def HometoCreate():
     wid = QtWidgets.QWidget()
     layout = QtWidgets.QVBoxLayout()
     wid.setLayout(layout)
-    scroll= QtWidgets.QScrollArea()
+    scroll = QtWidgets.QScrollArea()
     scroll.setWidgetResizable(True)
     scroll.setObjectName("scrollArea")
     scroll.setEnabled(True)
@@ -119,6 +118,7 @@ def HometoGame():
     GameWindow = game_manager.display.window
     GameWindow.show()
 
+
 def HometoCards():
     """ Creates another window, using the class ... Seeks the existing subjects in database and shows the new window.
 
@@ -141,6 +141,7 @@ def HometoCards():
     CardsWindow = cards_manager.display.window
     CardsWindow.show()
 
+
 class ManageCards:
     def __init__(self, window, layout, first_display):
         """
@@ -149,7 +150,7 @@ class ManageCards:
         """
         self.title = create_text(window, layout, "Nouvelle flashcard", 300, 10)
         self.display = first_display
-        self.question_data=list()
+        self.question_data = list()
 
     def display_subjects(self):
         self.display.buttons_in_window()
@@ -174,21 +175,22 @@ class ManageCards:
         for i in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[i].clicked.connect(partial(self.from_lesson_to_questions, i))
 
-    def from_lesson_to_questions(self,i):
+    def from_lesson_to_questions(self, i):
         self.title.setText(self.display.list_of_titles[i])
         self.question_data.append(self.display.list_of_titles[i])
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
-        questions_list= sql.get_all_questions(self.question_data[0],self.question_data[1])
+        questions_list = sql.get_all_questions(self.question_data[0], self.question_data[1])
         print(questions_list)
 
-        answers_list =sql.get_all_answers(self.question_data[0],self.question_data[1])
+        answers_list = sql.get_all_answers(self.question_data[0], self.question_data[1])
         print(answers_list)
         new_display = DisplayCards(self.display.window, self.display.layout,
-                                     questions_list,answers_list)
+                                   questions_list, answers_list)
         self.display = new_display
         self.display.display_all_cards()
         self.action_questions()
+
     def action_questions(self):
         self.display.list_of_widgets[-1].clicked.connect(self.display.window.close)
 
@@ -269,7 +271,8 @@ class ManageCreation:
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
         self.title.setText("Continuer ? ")
-        new_display = DisplayChoices(self.display.window, self.display.layout, ["Nouvelle question dans "+self.new_question_data[1],"Terminé"],False,False)
+        new_display = DisplayChoices(self.display.window, self.display.layout,
+                                     ["Nouvelle question dans " + self.new_question_data[1], "Terminé"], False, False)
         self.display = new_display
         self.display.buttons_in_window()
         self.display.list_of_widgets[0].clicked.connect(partial(self.redo))
@@ -279,8 +282,6 @@ class ManageCreation:
         self.new_question_data.pop()
         self.new_question_data.pop()
         self.new_question()
-
-
 
     def new_answer(self):
 
@@ -313,7 +314,7 @@ class ManageCreation:
         self.display = new_display
         self.action_lessons()
 
-    def new_question_i(self,i):
+    def new_question_i(self, i):
         self.new_question_data.append(self.display.list_of_titles[i])
         for k in range(len(self.display.list_of_widgets)):
             self.display.list_of_widgets[k].hide()
@@ -330,7 +331,7 @@ class ManageCreation:
             self.display.list_of_widgets[k].show()
         for i in range(len(self.display.list_of_widgets)):
             if i < len(self.display.list_of_widgets) - 1:
-                self.display.list_of_widgets[i].clicked.connect(partial(self.new_question_i,i))
+                self.display.list_of_widgets[i].clicked.connect(partial(self.new_question_i, i))
             if i == len(self.display.list_of_widgets) - 1:
                 self.display.list_of_widgets[i].clicked.connect(partial(self.new_lesson))
 
@@ -536,6 +537,7 @@ class ManageGame:
         self.display.list_of_widgets[0].clicked.connect(partial(self.display_first_question, self.game_mode))
         self.display.list_of_widgets[1].clicked.connect(partial(self.display.window.close))
 
+
 class DisplayCards:
     """
             :param window: the window where the choices are displayed
@@ -545,15 +547,17 @@ class DisplayCards:
             :param list_of_widgets: collects all the widgets created
             :param layout2: grid layout (attached to self.layout) that enables us to display cards into a grid
             """
+
     def __init__(self, window, layout, questions_list, answers_list):
         self.window = window
         self.layout = layout
-        self.questions=questions_list
-        self.answers=answers_list
-        self.list_of_widgets=list()
-        self.layout2= QtWidgets.QGridLayout()
-    def display_one_card(self,i):
-        question_text= QtWidgets.QLabel(self.questions[i], self.window)
+        self.questions = questions_list
+        self.answers = answers_list
+        self.list_of_widgets = list()
+        self.layout2 = QtWidgets.QGridLayout()
+
+    def display_one_card(self, i):
+        question_text = QtWidgets.QLabel(self.questions[i], self.window)
         question_text.setAlignment(QtCore.Qt.AlignCenter)
         question_text.setStyleSheet("""
         QWidget {
@@ -562,7 +566,7 @@ class DisplayCards:
             background-color: rgb(255, 255, 255);
             }
         """)
-        answer_text =QtWidgets.QLabel(self.answers[i], self.window)
+        answer_text = QtWidgets.QLabel(self.answers[i], self.window)
         answer_text.setAlignment(QtCore.Qt.AlignCenter)
         answer_text.setStyleSheet("""
                 QWidget {
@@ -571,17 +575,18 @@ class DisplayCards:
                     }
                 """)
         delete_button = QtWidgets.QPushButton("Supprimer la question", self.window)
-        self.layout2.addWidget(question_text,i,0)
-        self.layout2.addWidget(answer_text,i,1)
-        self.layout2.addWidget(delete_button,i,2)
+        self.layout2.addWidget(question_text, i, 0)
+        self.layout2.addWidget(answer_text, i, 1)
+        self.layout2.addWidget(delete_button, i, 2)
         self.list_of_widgets.append(question_text)
         self.list_of_widgets.append(answer_text)
         self.list_of_widgets.append(delete_button)
+
     def display_all_cards(self):
         self.layout.addLayout(self.layout2)
         for i in range(len(self.questions)):
             self.display_one_card(i)
-        end_button=create_button(self.window,self.layout,"Retour à la page d'accueil",200)
+        end_button = create_button(self.window, self.layout, "Retour à la page d'accueil", 200)
         self.list_of_widgets.append(end_button)
 
 
@@ -594,6 +599,7 @@ class EnterText:
             :param content: collects the text entered by the user
 
             """
+
     def __init__(self, window, layout, label):
         self.window = window
         self.layout = layout
