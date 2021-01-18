@@ -202,6 +202,11 @@ def get_all_answers(chosen_subject,chosen_lesson):
 
     return answer_list
 
+def delete_question(chosen_subject,chosen_lesson, chosen_question):
+    cursor.execute('DELETE FROM base WHERE subject = ? AND lesson_name = ? AND question= ?',
+                   (chosen_subject, chosen_lesson,chosen_question))
+    MyData.commit()
+
 if __name__ == "__main__":
     new_question()
     # choose_game_param()
