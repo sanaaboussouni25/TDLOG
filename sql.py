@@ -3,7 +3,12 @@ import datetime
 import random as rd
 import math
 
-MyData = sqlite3.connect('MyDataBase.db')
+IS_TEST = False  # False : using the user's database ; True : using the fixed database to test the code
+if IS_TEST:
+    MyData = sqlite3.connect('BaseTest.db')
+else:
+    MyData = sqlite3.connect('MyDataBase.db')
+
 cursor = MyData.cursor()
 cursor.execute('''CREATE TABLE IF NOT EXISTS base(
  id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
@@ -75,10 +80,17 @@ def is_answer_right(question, answer):
     print(result)
     cursor.execute('UPDATE base SET nbr_asked = nbr_asked +1 WHERE question=?', (question,))
     MyData.commit()
+    # we have to suppress the noise before comparing the answers
     right_answer = result[0].lower()  # .lower() allows to ignore differences of capital letters
     answer = answer.lower()
-    right_answer = right_answer.replace(" ", "")  # .replace(" ", "") allows to ignore differences of spacing
-    answer = answer.replace(" ", "")
+    noise_list = [" ", ";", "?", "'", "/"]  # We can't add symbols that could be used in a mathematical expression
+    for elem in right_answer:
+        if elem in noise_list:
+            right_answer = right_answer.replace(elem, "")
+    for elem in answer:
+        if elem in noise_list:
+            answer = answer.replace(elem, "")
+
     if right_answer == answer:
         return True, result[0]
 
@@ -192,6 +204,20 @@ def get_all_questions(chosen_subject,chosen_lesson):
         question_list.append(r[0])
 
     return question_list
+
+def get_stats(chosen_subject, chosen_lesson):
+    stat_list = []
+    cursor.execute('SELECT nbr_asked, nbr_right FROM base WHERE subject = ? AND lesson_name = ? ORDER BY id ASC',
+                   (chosen_subject, chosen_lesson,))
+    results = cursor.fetchall()
+    for r in results:
+        if r[0]>0:
+
+            stat_list.append(str(int(r[1]/r[0]*100)) + "% de réussite")
+        else:
+            stat_list.append("Pas encore posée")
+    return stat_list
+
 def get_all_answers(chosen_subject,chosen_lesson):
     answer_list = []
     cursor.execute('SELECT answer FROM base WHERE subject = ? AND lesson_name = ? ORDER BY id ASC',

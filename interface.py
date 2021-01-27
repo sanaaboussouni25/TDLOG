@@ -188,9 +188,9 @@ class ManageCards:
         questions_list = sql.get_all_questions(self.question_data[0], self.question_data[1])
 
         answers_list = sql.get_all_answers(self.question_data[0], self.question_data[1])
-
+        stat_list=sql.get_stats(self.question_data[0], self.question_data[1])
         new_display = DisplayCards(self.display.window, self.display.layout,
-                                   questions_list, answers_list)
+                                   questions_list, answers_list, stat_list)
         self.display = new_display
         self.display.window.resize(800, 300)
         self.display.display_all_cards()
@@ -199,9 +199,9 @@ class ManageCards:
     def action_questions(self, j):
 
         for i in range(len(self.display.list_of_widgets)):
-            if i % 3 == 2:
-                print(int((i + 1) / 3))
-                self.display.list_of_widgets[i].clicked.connect(partial(self.delete_question, int((i - 2) / 3), j))
+            if i % 4 == 3:
+                self.display.questions[int((i - 3) / 4)]
+                self.display.list_of_widgets[i].clicked.connect(partial(self.delete_question, int((i - 3) / 4), j))
         self.display.list_of_widgets[-1].clicked.connect(self.display.window.close)
 
     def delete_question(self, i, j):
@@ -219,9 +219,9 @@ class ManageCards:
         questions_list = sql.get_all_questions(self.question_data[0], self.question_data[1])
 
         answers_list = sql.get_all_answers(self.question_data[0], self.question_data[1])
-
+        stat_list = sql.get_stats(self.question_data[0], self.question_data[1])
         new_display = DisplayCards(self.display.window, self.display.layout,
-                                   questions_list, answers_list)
+                                   questions_list, answers_list, stat_list)
         self.display = new_display
         self.display.display_all_cards()
         self.action_questions(i)
@@ -506,6 +506,7 @@ class ManageGame:
             self.display_next_question(True)
 
         else:
+
             for k in range(len(self.display.list_of_widgets)):
                 self.display.list_of_widgets[k].hide()
 
@@ -586,11 +587,12 @@ class DisplayCards:
             :param layout2: grid layout (attached to self.layout) that enables us to display cards into a grid
             """
 
-    def __init__(self, window, layout, questions_list, answers_list):
+    def __init__(self, window, layout, questions_list, answers_list, stats_list):
         self.window = window
         self.layout = layout
         self.questions = questions_list
         self.answers = answers_list
+        self.stats= stats_list
         self.list_of_widgets = list()
         self.layout2 = QtWidgets.QGridLayout()
 
@@ -613,11 +615,21 @@ class DisplayCards:
                     }
                 """)
         delete_button = QtWidgets.QPushButton("Supprimer la question", self.window)
+        stat_text = QtWidgets.QLabel(self.stats[i], self.window)
+        stat_text.setAlignment(QtCore.Qt.AlignCenter)
+        stat_text.setStyleSheet("""
+                        QWidget {
+                            border: 1px black;
+                            border-radius: 5px;
+                            }
+                        """)
         self.layout2.addWidget(question_text, i, 0)
         self.layout2.addWidget(answer_text, i, 1)
-        self.layout2.addWidget(delete_button, i, 2)
+        self.layout2.addWidget(stat_text, i, 2)
+        self.layout2.addWidget(delete_button, i, 3)
         self.list_of_widgets.append(question_text)
         self.list_of_widgets.append(answer_text)
+        self.list_of_widgets.append(stat_text)
         self.list_of_widgets.append(delete_button)
 
     def display_all_cards(self):
